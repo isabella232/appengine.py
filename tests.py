@@ -5,6 +5,8 @@ import zipfile
 
 import mock
 
+import appengine
+
 
 def make_zip(members):
     """Creates a new ZipFile and returns a file-like object open for reading.
@@ -26,7 +28,6 @@ def make_zip(members):
 
 class ExtractZipTestCase(unittest.TestCase):
     def test_extract_zip(self):
-        from appengine import _extract_zip
 
         filename = make_zip([
             ('/foo', 'contents of foo'),
@@ -34,7 +35,7 @@ class ExtractZipTestCase(unittest.TestCase):
         zip = zipfile.ZipFile(filename)
 
         with mock.patch('appengine._extract_zip_member') as mock_extract:
-            _extract_zip(zip)
+            appengine._extract_zip(zip)
 
         self.assertEqual(mock_extract.call_count, 1)
         self.assertEqual(mock_extract.call_args_list[0][0][0], zip)
@@ -42,30 +43,29 @@ class ExtractZipTestCase(unittest.TestCase):
 
 
 class ArgvParsingTestCase(unittest.TestCase):
+
     def test_opts(self):
         # Argument option parsing.
-        from appengine import make_parser
 
         argv = '--prefix /foo/local --bindir /foo/local/bin --force --no-bindir'
-        parser = make_parser()
-        opts, args = parser.parse_args(argv.split())
+        parser = appengine.make_parser()
+        args = parser.parse_args(argv.split())
 
-        self.assertEqual(opts.force, True)
-        self.assertEqual(opts.prefix, '/foo/local')
-        self.assertEqual(opts.bindir, '/foo/local/bin')
-        self.assertEqual(opts.no_bindir, True)
+        self.assertEqual(args.force, True)
+        self.assertEqual(args.prefix, '/foo/local')
+        self.assertEqual(args.bindir, '/foo/local/bin')
+        self.assertEqual(args.no_bindir, True)
 
     def test_default_opts(self):
         # Default values for missing options.
-        from appengine import make_parser
 
-        parser = make_parser()
-        opts, args = parser.parse_args(''.split())
+        parser = appengine.make_parser()
+        args = parser.parse_args(''.split())
 
-        self.assertEqual(opts.force, False)
-        self.assertEqual(opts.prefix, None)
-        self.assertEqual(opts.bindir, None)
-        self.assertEqual(opts.no_bindir, False)
+        self.assertEqual(args.force, False)
+        self.assertEqual(args.prefix, None)
+        self.assertEqual(args.bindir, None)
+        self.assertEqual(args.no_bindir, False)
 
 
 if __name__ == "__main__":

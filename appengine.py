@@ -1,22 +1,25 @@
 #!/usr/bin/env python
 from __future__ import with_statement
 
-from cStringIO import StringIO
-import itertools
-import logging
-import optparse
+import argparse
 import os
 import stat
 import sys
-import urllib2
 import urlparse
 import zipfile
+
+from distutils import version as dist_version
+
+import yaml
+import requests
 
 
 __version__ = '0.2'
 USER_AGENT = 'appengine.py/' + __version__
 VERSION_URL = 'https://appengine.google.com/api/updatecheck'
-DOWNLOAD_URL = 'http://googleappengine.googlecode.com/files/google_appengine_%s.zip'
+OLD_VERSION_URL = 'http://googleappengine.googlecode.com/files/google_appengine_%s.zip'
+CURRENT_VERSION_URL = 'https://storage.googleapis.com/appengine-sdks/featured/google_appengine_%s.zip'
+LAST_OLD_VERSION = dist_version.StrictVersion('1.8.9')
 sdk_version_key = 'APPENGINEPY_SDK_VERSION'
 
 
@@ -59,13 +62,34 @@ def _extract_zip_member(archive, member, dest):
 
 def make_parser():
     """Returns a new option parser."""
-    p = optparse.OptionParser()
-    p.add_option('--prefix', metavar='DIR', help='install SDK in DIR')
-    p.add_option('--bindir', metavar='DIR', help='install tools in DIR')
-    p.add_option('--force', action='store_true', default=False,
-        help='over-write existing installation')
-    p.add_option('--no-bindir', action='store_true', default=False,
-        help='do not install tools on DIR')
+    p = argparse.ArgumentParser()
+    p.add_argument(
+        'sdk',
+        nargs='?',
+        default=None
+    )
+    p.add_argument(
+        '-p', '--prefix',
+        metavar='DIR',
+        help='Install SDK in DIR'
+    )
+    p.add_argument(
+        '-b', '--bindir',
+        metavar='DIR',
+        help='Install tools in DIR'
+    )
+    p.add_argument(
+        '-f', '--force',
+        action='store_true',
+        help='over-write existing installation',
+        default=False
+    )
+    p.add_argument(
+        '-n', '--no-bindir',
+        action='store_true',
+        default=False,
+        help='Do not install tools in DIR'
+    )
 
     return p
 
@@ -74,36 +98,46 @@ def parse_args(argv):
     """Returns a tuple of (opts, args) for arguments."""
     parser = make_parser()
 
-    opts, args = parser.parse_args(argv[1:])
-
+    args = parser.parse_args(argv[1:])
+    sdk = args.sdk
     # Use APPENGINEPY_SDK_VERSION if set.
-    if not args and (sdk_version_key in os.environ):
-        args = (os.environ[sdk_version_key],)
+    if not sdk and (sdk_version_key in os.environ):
+        sdk = (os.environ[sdk_version_key],)
 
-    return opts, args
-
-
-def get(url):
-    request = urllib2.Request(url, headers={'User-Agent': USER_AGENT})
-
-    return urllib2.urlopen(request)
+    return args, sdk
 
 
 def check_version(url=VERSION_URL):
     """Returns the version string for the latest SDK."""
-    for line in get(url):
-        if 'release:' in line:
-            return line.split(':')[-1].strip(' \'"\r\n')
+    response = requests.get(url)
+    update_dict = yaml.load(response.text)
+    release_version = update_dict['release']
+    return release_version
 
 
-def parse_sdk_name(name):
+def parse_sdk_name(name, current_version):
     """Returns a filename or URL for the SDK name.
 
     The name can be a version string, a remote URL or a local path.
     """
     # Version like x.y.z, return as-is.
-    if all(part.isdigit() for part in name.split('.', 2)):
-        return DOWNLOAD_URL % name
+    try:
+        version = dist_version.LooseVersion(name)
+        url = None
+        if version == current_version:
+            # get from current.
+            url = CURRENT_VERSION_URL
+        elif version > LAST_OLD_VERSION:
+            # newer SDK, not on code.google.com
+            pass
+        else:
+            # old SDK in code.google.com
+            url = OLD_VERSION_URL
+
+        return url % name
+    except ValueError:
+      # this means we couldn't parse as x.y.z
+        pass
 
     # A network location.
     url = urlparse.urlparse(name)
@@ -128,18 +162,13 @@ def _download(url):
     """Downloads an URL and returns a file-like object open for reading,
     compatible with zipping.ZipFile (it has a seek() method).
     """
-    fh = StringIO()
-
-    for line in get(url):
-        fh.write(line)
-
-    fh.seek(0)
-    return fh
+    file_download = requests.get(url)
+    return file_download.raw
 
 
 def install_sdk(filename, dest='.', overwrite=False):
-    zip = zipfile.ZipFile(filename)
-    _extract_zip(zip, dest=dest)
+    archive = zipfile.ZipFile(filename)
+    _extract_zip(archive, dest=dest)
 
     return dest
 
@@ -166,16 +195,17 @@ def install_tools(src, dest, overwrite=False):
 
 
 def main(argv):
-    opts, args = parse_args(argv)
-    version = args[0] if args else check_version()
-    sdk_url = parse_sdk_name(version)
+    args, sdk = parse_args(argv)
+    current_version = check_version()
+    version = sdk or current_version
+    sdk_url = parse_sdk_name(version, current_version)
 
     archive = open_sdk(sdk_url)
-    install_path = install_sdk(archive, dest=sys.prefix, overwrite=opts.force)
+    install_path = install_sdk(archive, dest=sys.prefix, overwrite=args.force)
 
     src = os.path.join(install_path, 'google_appengine')
     dest = os.path.join(os.environ['VIRTUAL_ENV'], 'bin')
-    install_tools(src, dest, overwrite=opts.force)
+    install_tools(src, dest, overwrite=args.force)
 
 
 if __name__ == "__main__":

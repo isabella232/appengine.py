@@ -36,15 +36,19 @@ class install(_install):
 
 
 setup(
-    name = 'appengine',
-    version = appengine.__version__,
-    description = 'Google App Engine re-packaged for PyPI',
-    author = 'David Buxton',
-    author_email = 'david@gasmark6.com',
-    url = 'https://github.com/davidwtbuxton/appengine.py',
-    scripts = ['appengine.py'],
-    cmdclass = {'install': install},
-    classifiers = [
+    name='appengine',
+    version=appengine.__version__,
+    description='Google App Engine re-packaged for PyPI',
+    author='David Buxton',
+    author_email='david@gasmark6.com',
+    url='https://github.com/davidwtbuxton/appengine.py',
+    scripts=['appengine.py'],
+    cmdclass={'install': install},
+    install_requires=[
+        'PyYAML>=3.11',
+        'requests==2.6.0'
+    ],
+    classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
