@@ -4,6 +4,7 @@ from __future__ import with_statement
 import argparse
 import os
 import stat
+import StringIO
 import sys
 import urlparse
 import zipfile
@@ -163,7 +164,7 @@ def _download(url):
     compatible with zipping.ZipFile (it has a seek() method).
     """
     file_download = requests.get(url)
-    return file_download.raw
+    return StringIO.StringIO(file_download.content)
 
 
 def install_sdk(filename, dest='.', overwrite=False):
@@ -204,7 +205,7 @@ def main(argv):
     install_path = install_sdk(archive, dest=sys.prefix, overwrite=args.force)
 
     src = os.path.join(install_path, 'google_appengine')
-    dest = os.path.join(os.environ['VIRTUAL_ENV'], 'bin')
+    dest = args.prefix or os.path.join(os.environ['VIRTUAL_ENV'], 'bin')
     install_tools(src, dest, overwrite=args.force)
 
 
