@@ -2,24 +2,36 @@
 from __future__ import with_statement
 
 import argparse
-import os
 import stat
 import StringIO
-import sys
 import urlparse
 import zipfile
+import os
+import subprocess
+import sys
 
 from distutils import version as dist_version
 
 import yaml
 import requests
 
-
 VERSION_URL = 'https://appengine.google.com/api/updatecheck'
 OLD_VERSION_URL = 'http://googleappengine.googlecode.com/files/google_appengine_%s.zip'
 CURRENT_VERSION_URL = 'https://storage.googleapis.com/appengine-sdks/featured/google_appengine_%s.zip'
 LAST_OLD_VERSION = dist_version.StrictVersion('1.8.9')
 sdk_version_key = 'APPENGINEPY_SDK_VERSION'
+
+
+def install():
+    try:
+        value = int(os.environ.get('INSTALL_APPENGINE', '0'))
+    except ValueError:
+          value = 0
+    install_appengine = bool(value)
+
+    if install_appengine:
+        filename = os.path.join(os.path.dirname(__file__), 'appengine.py')
+        subprocess.call([sys.executable, filename])
 
 
 def _extract_zip(archive, dest=None, members=None):

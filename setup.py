@@ -1,20 +1,5 @@
-import os
-import subprocess
-import sys
 
 from setuptools import setup
-
-
-def install():
-    try:
-        value = int(os.environ.get('INSTALL_APPENGINE', '0'))
-    except ValueError:
-          value = 0
-    install_appengine = bool(value)
-
-    if install_appengine:
-        filename = os.path.join(os.path.dirname(__file__), 'appengine.py')
-        subprocess.call([sys.executable, filename])
 
 
 setup(
@@ -38,6 +23,6 @@ setup(
     ],
     entry_points="""
     [console_scripts]
-    appengine.py = appengine.setup:install
+    appengine.py = appengine:install
     """
 )
