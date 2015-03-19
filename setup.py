@@ -25,7 +25,6 @@ setup(
     author_email='david@gasmark6.com',
     url='https://github.com/davidwtbuxton/appengine.py',
     scripts=['appengine.py'],
-    cmdclass={'install': install},
     install_requires=[
         'PyYAML>=3.11',
         'requests==2.6.0'
