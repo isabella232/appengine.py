@@ -15,8 +15,6 @@ import yaml
 import requests
 
 
-__version__ = '0.2.2'
-USER_AGENT = 'appengine.py/' + __version__
 VERSION_URL = 'https://appengine.google.com/api/updatecheck'
 OLD_VERSION_URL = 'http://googleappengine.googlecode.com/files/google_appengine_%s.zip'
 CURRENT_VERSION_URL = 'https://storage.googleapis.com/appengine-sdks/featured/google_appengine_%s.zip'

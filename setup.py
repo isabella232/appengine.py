@@ -4,8 +4,6 @@ import sys
 
 from setuptools import setup
 
-import appengine
-
 
 def install():
     try:
@@ -21,7 +19,7 @@ def install():
 
 setup(
     name='appengine',
-    version=appengine.__version__,
+    version='0.2.2',
     description='Google App Engine re-packaged for PyPI',
     author='David Buxton',
     author_email='david@gasmark6.com',
