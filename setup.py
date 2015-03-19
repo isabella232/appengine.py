@@ -2,37 +2,21 @@ import os
 import subprocess
 import sys
 
-from setuptools import Command, setup
-from setuptools.command.install import install as _install
+from setuptools import setup
 
 import appengine
 
 
-class install(_install):
-    user_options = _install.user_options + [('install-appengine', None, 'install the App Engine SDK')]
-    boolean_options = _install.boolean_options + ['install-appengine']
+def install():
+    try:
+        value = int(os.environ.get('INSTALL_APPENGINE', '0'))
+    except ValueError:
+          value = 0
+    install_appengine = bool(value)
 
-    def initialize_options(self):
-        _install.initialize_options(self)
-
-        self.install_appengine = None
-
-    def finalize_options(self):
-        _install.finalize_options(self)
-
-        if self.install_appengine is None:
-            try:
-                value = int(os.environ.get('INSTALL_APPENGINE', '0'))
-            except ValueError:
-                value = 0
-            self.install_appengine = bool(value)
-
-    def run(self):
-        _install.run(self)
-
-        if self.install_appengine:
-            filename = os.path.join(os.path.dirname(__file__), 'appengine.py')
-            subprocess.call([sys.executable, filename])
+    if install_appengine:
+        filename = os.path.join(os.path.dirname(__file__), 'appengine.py')
+        subprocess.call([sys.executable, filename])
 
 
 setup(
@@ -55,4 +39,8 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
     ],
+    entry_points="""
+    [console_scripts]
+    appengine.py = appengine.setup:install
+    """
 )
