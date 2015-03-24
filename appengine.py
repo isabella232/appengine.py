@@ -204,7 +204,7 @@ def main(argv):
     install_path = install_sdk(archive, dest=sys.prefix, overwrite=args.force)
 
     src = os.path.join(install_path, 'google_appengine')
-    dest = args.prefix or os.path.join(os.environ['VIRTUAL_ENV'], 'bin')
+    dest = args.prefix or os.path.join(sys.prefix, 'bin')
     install_tools(src, dest, overwrite=args.force)
 
 
