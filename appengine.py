@@ -123,7 +123,7 @@ def parse_sdk_name(name, current_version):
     """
     # Version like x.y.z, return as-is.
     try:
-        version = dist_version.LooseVersion(name)
+        version = dist_version.StrictVersion(name)
         if version == current_version:
             # get from current.
             url = CURRENT_VERSION_URL
