@@ -35,7 +35,7 @@ class install(_install):
 
 setup(
     name='appengine',
-    version='0.2.2',
+    version='0.2.3',
     description='Google App Engine re-packaged for PyPI',
     author='David Buxton',
     author_email='david@gasmark6.com',

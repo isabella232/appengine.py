@@ -18,6 +18,7 @@ import requests
 USER_AGENT = 'appengine.py'
 VERSION_URL = 'https://appengine.google.com/api/updatecheck'
 OLD_VERSION_URL = 'http://googleappengine.googlecode.com/files/google_appengine_%s.zip'
+NEW_DEPRECATED_URL = 'http://storage.googleapis.com/appengine-sdks/deprecated/1917/google_appengine_%s.zip'
 CURRENT_VERSION_URL = 'https://storage.googleapis.com/appengine-sdks/featured/google_appengine_%s.zip'
 LAST_OLD_VERSION = dist_version.StrictVersion('1.8.9')
 sdk_version_key = 'APPENGINEPY_SDK_VERSION'
@@ -129,7 +130,7 @@ def parse_sdk_name(name, current_version):
             url = CURRENT_VERSION_URL
         elif version > LAST_OLD_VERSION:
             # newer SDK, not on code.google.com
-            pass
+            url = NEW_DEPRECATED_URL
         else:
             # old SDK in code.google.com
             url = OLD_VERSION_URL
