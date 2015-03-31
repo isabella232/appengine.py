@@ -1,6 +1,7 @@
 *.py[cod]
 /dist
 /venv
+/build
 .DS_Store
 /MANIFEST
 .tox*

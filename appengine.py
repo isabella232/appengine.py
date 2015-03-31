@@ -132,7 +132,7 @@ def parse_sdk_name(name, current_version):
             url = NEW_DEPRECATED_URL % ''.join(name.split('.'))
         else:
             # old SDK in code.google.com
-            url = OLD_VERSION_URL % name
+            url = OLD_VERSION_URL
 
         return url % name
     except ValueError:
